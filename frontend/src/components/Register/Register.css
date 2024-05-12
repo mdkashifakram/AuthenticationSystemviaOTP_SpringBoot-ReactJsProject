@@ -1,0 +1,98 @@
+/* styles.css */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+}
+
+.container {
+  display: flex;
+  justify-content:center;
+  align-items:first baseline;
+  height: 50vh;
+  background-image: url('https://mdbootstrap.com/img/new/textures/full/171.jpg');
+  background-size:cover;
+  background-position:center ;
+  background-repeat: no-repeat;
+}
+
+.background-image {
+  background-image: url('https://mdbootstrap.com/img/new/textures/full/171.jpg');
+  height: 370px;
+  /* Add other background styles if needed */
+}
+
+.form-card {
+  background-color: #ffffff;
+  padding: 50px;
+  height: 430px;
+  width: 650px ;
+  border-radius: 20px;
+  box-shadow: 0 12px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  backdrop-filter: blur(30px);
+  margin-top: -100px;
+}
+
+.form-card h2
+{
+  font-size:45px;
+  margin-top:1px ;
+  font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+.form-row {
+  
+  display: flex;
+  margin-bottom: 10px;
+  padding: 7px;
+  justify-content:center;
+
+}
+
+.form-row input
+{
+margin-right: 20px;
+
+}
+
+.or{
+  font-style: italic;
+  font-size: 18px;
+  color: silver;
+}
+
+input[type="text"],
+input[type="email"]
+ {
+  width: 58%;
+  padding: 20px;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+}
+
+label {
+  display: flex;
+  align-items: center;
+}
+
+button {
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 45%;
+  height: 40px;
+}
+
+.social-icons {
+  margin-top: 20px;
+}
+
+.social-icons i {
+  font-size: 24px;
+  margin: 0 10px;
+  color: #007bff;
+}

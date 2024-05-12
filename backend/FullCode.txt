@@ -1,0 +1,456 @@
+--------------this is my main class---------
+package com.example.OtpGenerator;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+
+import jakarta.annotation.PostConstruct;
+
+@SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
+public class OtpGeneratorApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(OtpGeneratorApplication.class, args);
+	
+	}
+
+
+}
+
+
+--------------this is my twilio config class---------------
+package com.example.OtpGenerator.config;
+
+import com.twilio.Twilio;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
+
+
+//
+// Twilio Configuration
+// Generate own account sid,authToken,trialNumber
+// from https://console.twilio.com/?frameUrl=%2Fconsole%3Fx-target-region%3Dus1&newCustomer=true
+@Configuration
+@ConfigurationProperties(prefix = "twilio")
+@Data
+public class TwilioConfig {
+
+
+   @Value("${twilio.account_sid}")
+    private String accountSid;
+
+
+   @Value("${twilio.auth_token}")
+    private String authToken;
+
+
+   @Value("${twilio.trial_number}")
+    private String trialNumber;
+
+
+   public String getAccountSid() {
+        return accountSid;
+    }
+
+
+   public String getAuthToken() {
+        return authToken;
+    }
+
+
+   public String getTrialNumber() {
+        return trialNumber;
+    }
+
+
+   public TwilioConfig(@Value("${twilio.account_sid}") String accountSid,
+            @Value("${twilio.auth_token}") String authToken, @Value("${twilio.trial_number}") String trialNumber) {
+        this.accountSid = accountSid;
+        this.authToken = authToken;
+        this.trialNumber = trialNumber;
+        Twilio.init(accountSid, authToken); // Initialize Twilio client
+    }
+}
+
+
+---------this is ApiController class------------------------
+
+package com.example.OtpGenerator.controller;
+import com.example.OtpGenerator.entity.UserEntity;
+import com.example.OtpGenerator.model.MobileRequest;
+import com.example.OtpGenerator.model.OTPRequest;
+import com.example.OtpGenerator.service.ControllerEmailService;
+import com.example.OtpGenerator.service.MobileService;
+import com.example.OtpGenerator.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/otp")
+public class ApiController {
+
+	@Autowired
+    private UserService userService;
+	
+    @Autowired
+    private ControllerEmailService controllerEmailService; // Update the service reference
+    
+    @Autowired
+    private MobileService mobileService;
+
+    @PostMapping("/send-otp")
+    public String sendOTP(@RequestBody OTPRequest email) {
+        userService.registerUser(email);
+        controllerEmailService.sentOTPEmail(email); // Update the method call
+        return "OTP sent successfully to " + email;
+    }
+    //for mobile message
+    @PostMapping("/send-mobile-otp")
+    public String sendOTPMobile(@RequestBody MobileRequest mobile) {
+        userService.registerMobileUser(mobile);
+        mobileService.generateOtp(mobile);
+        return "OTP sent successfully to " + mobile;
+    }
+}
+
+
+
+
+------------------------MobileEntity----------------------
+
+package com.example.OtpGenerator.entity;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
+public class MobileEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String mobileNumber;
+
+	public MobileEntity(Long id, String mobileNumber) {
+		super();
+		this.id = id;
+		this.mobileNumber = mobileNumber;
+	}
+
+	public MobileEntity() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getMobileNumber() {
+		return mobileNumber;
+	}
+
+	public void setMobileNumber(String l) {
+		this.mobileNumber = l;
+	}
+    
+    
+
+
+}
+
+
+
+
+
+---------------------UserEntity-----------------------------
+package com.example.OtpGenerator.entity;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
+public class UserEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String email;
+
+    // Constructors, getters, and setters
+
+    public UserEntity() {
+    }
+
+    public UserEntity(String email) {
+        this.email = email;
+    }
+
+    // Getters and setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+   
+}
+
+
+
+-----------------MobileRequest-----------------------------
+package com.example.OtpGenerator.model;
+
+public class MobileRequest {
+
+	private String mobileNumber;
+
+
+	public String getMobileNumber() {
+		return mobileNumber;
+	}
+
+	public void setMobileNumber(String mobileNumber) {
+		this.mobileNumber = mobileNumber;
+	}
+
+	public MobileRequest(String mobileNumber) {
+		super();
+		this.mobileNumber = mobileNumber;
+	}
+
+	public MobileRequest() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+}
+
+
+
+
+
+-------------------OtpRequest-------------------------------------
+package com.example.OtpGenerator.model;
+
+public class OTPRequest {
+
+	
+	private String email;
+
+	
+	public OTPRequest() {}
+	
+	public OTPRequest(String phoneNumber, String email) {
+		
+		this.email = email;
+	}
+
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+
+
+}
+
+
+
+--------------------MobileRepository------------------------------------
+
+package com.example.OtpGenerator.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.example.OtpGenerator.entity.MobileEntity;
+
+@Repository
+public interface MobileRepository extends JpaRepository<MobileEntity,String>{
+
+}
+
+
+----------------------UserRepository----------------------------------
+package com.example.OtpGenerator.repository;
+
+import com.example.OtpGenerator.entity.UserEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
+
+	String findByEmail(String string);
+}
+
+
+
+-----------------ControllerEmailService---------------------------------------
+package com.example.OtpGenerator.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
+
+import com.example.OtpGenerator.entity.UserEntity;
+import com.example.OtpGenerator.model.OTPRequest;
+
+
+@Service
+public class ControllerEmailService {
+
+	@Autowired()
+	private JavaMailSender javaMailSender;
+	@Autowired
+	private OTPService otpService;
+	public void sentOTPEmail(OTPRequest toEmail)
+	{
+	String otp=otpService.generateOTP();	
+	SimpleMailMessage message=new SimpleMailMessage();
+	message.setTo(toEmail.getEmail());
+	message.setSubject("Your OTP for Verification");
+	message.setText("Your OTP is :"+otp);
+	message.setCc("alice24cyrus@gmail.com");
+	javaMailSender.send(message);
+
+	}
+}
+
+
+
+--------------------------------------------------------
+
+package com.example.OtpGenerator.service;
+
+import com.example.OtpGenerator.config.TwilioConfig;
+import com.example.OtpGenerator.model.MobileRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
+
+
+@Service
+public class MobileService {
+
+	@Autowired
+	private OTPService otpService;
+	@Autowired
+	private TwilioConfig twilioConfig;
+	
+	public void generateOtp(MobileRequest phoneNo){
+	        PhoneNumber to = new PhoneNumber(phoneNo.getMobileNumber());
+	        PhoneNumber from = new PhoneNumber(twilioConfig.getTrialNumber());
+	        String otp = otpService.generateOTP();
+	        String otpMessage = "Dear Customer , Your OTP is " + otp + ". Otp to expired in 5 minutes";
+	        Message message = Message
+	                .creator(to, from,
+	                        otpMessage)
+	                .create();
+	  }
+	
+}
+
+
+--------------------------------------------------------
+
+package com.example.OtpGenerator.service;
+
+import org.springframework.stereotype.Service;
+
+import java.util.Random;
+
+@Service
+public class OTPService{
+	private static final int OTP_LENGTH=4;
+	public String generateOTP()
+	{
+		StringBuilder otp=new StringBuilder();
+		Random random=new Random();
+		for(int i=0;i<OTP_LENGTH;i++)
+		{
+			otp.append(random.nextInt(10));
+		}
+		return otp.toString();
+	}
+}
+
+
+
+
+--------------------------------------------------------
+
+package com.example.OtpGenerator.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.OtpGenerator.entity.MobileEntity;
+import com.example.OtpGenerator.entity.UserEntity;
+import com.example.OtpGenerator.model.MobileRequest;
+import com.example.OtpGenerator.model.OTPRequest;
+import com.example.OtpGenerator.repository.MobileRepository;
+import com.example.OtpGenerator.repository.UserRepository;
+
+@Service
+public class UserService {
+	@Autowired
+    private UserRepository userRepository;
+	
+	@Autowired
+    private MobileRepository mobileRepository;
+
+	public void registerUser(OTPRequest email) {
+        // Check if user already exists
+       
+            // If user does not exist, create a new user entity and save it
+        	UserEntity user = new UserEntity();
+        	user.setEmail(email.getEmail());
+        
+            userRepository.save(user);
+            // For demonstration purposes, let's just print the email
+            System.out.println("User registered with email: " + user.getEmail());
+	}
+	public void registerMobileUser(MobileRequest mobile) {
+        // Check if user already exists
+       
+            // If user does not exist, create a new user entity and save it
+        	MobileEntity user = new MobileEntity();
+        	user.setMobileNumber(mobile.getMobileNumber());      
+            mobileRepository.save(user);
+            // For demonstration purposes, let's just print the email
+            System.out.println("User registered with email: " + user.getMobileNumber());
+	}
+}
