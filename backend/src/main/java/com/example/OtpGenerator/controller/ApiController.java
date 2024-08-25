@@ -22,25 +22,25 @@ import org.springframework.web.bind.annotation.RestController;
 public class ApiController {
 
 	@Autowired
-    private UserService userService;
+    private UserServices userServices;
 	
     @Autowired
-    private ControllerEmailService controllerEmailService; // Update the service reference
+    private ControllerEmailServices controllerEmailServices; // Update the service reference
     
     @Autowired
-    private MobileService mobileService;
+    private MobileServices mobileService;
 
     @PostMapping("/send-otp")
     public String sendOTP(@RequestBody OTPRequest email) {
-        userService.registerUser(email);
-        controllerEmailService.sentOTPEmail(email); // Update the method call
+        userServices.registerUser(email);
+        controllerEmailServices.sentOTPEmail(email); // Update the method call
         return "OTP sent successfully to " + email;
     }
     //for mobile message
     @PostMapping("/send-mobile-otp")
     public String sendOTPMobile(@RequestBody MobileRequest mobile) {
-        userService.registerMobileUser(mobile);
-        mobileService.generateOtp(mobile);
+        userServices.registerMobileUser(mobile);
+        mobileServices.generateOtp(mobile);
         return "OTP sent successfully to " + mobile;
     }
 }
